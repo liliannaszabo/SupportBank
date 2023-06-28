@@ -1,7 +1,20 @@
 const csv = require('csv-parser')
 const fs = require('fs')
-
+const moment = require("moment");
+const log4js = require("log4js");
 const prompt = require('prompt-sync')();
+const logger = log4js.getLogger('logs');
+const jsonFile = require('./Transactions2013.json');
+
+
+log4js.configure({
+    appenders: {
+        file: { type: 'fileSync', filename: 'logs/debug.log' }
+    },
+    categories: {
+        default: { appenders: ['file'], level: 'debug'}
+    }
+})
 
 class Account {
     amount;
@@ -13,6 +26,29 @@ class Account {
     addMoney(amountToBeAdded){
         this.amount += amountToBeAdded
     }
+}
+
+class Transaction{
+    amount;
+    date;
+    from;
+    to;
+    narrative;
+
+    constructor(date, from, to, narrative, amount) {
+        this.date = moment(date, "DD-MM-YYYY");
+        if(!this.date.isValid()){
+            logger.error("Invalid date: " + date);
+        }
+        this.from = from;
+        this.to = to;
+        this.narrative = narrative;
+        this.amount = parseFloat(amount);
+        if(isNaN(this.amount)){
+            logger.error("Invalid amount: " + amount);
+        }
+    }
+
 }
 
 class AccountManager{
@@ -65,29 +101,12 @@ class TransactionManager{
     }
 }
 
-class Transaction{
-    amount;
-    date;
-    from;
-    to;
-    narrative;
-
-    constructor(date, from, to, narrative, amount) {
-        this.date = date;
-        this.from = from;
-        this.to = to;
-        this.narrative = narrative;
-        this.amount = amount;
-    }
-
-}
-
-let results = [];
-function processAccounts(results) {
+function processAccounts(transactionManager) {
     let accountManager = new AccountManager();
-    results.forEach(transaction =>{
-        let fromName = transaction["From"];
-        let toName = transaction["To"];
+
+    transactionManager.transactions.forEach(transaction =>{
+        let fromName = transaction.from;
+        let toName = transaction.to;
         let fromAccount;
         let toAccount;
         //Create accounts
@@ -102,29 +121,28 @@ function processAccounts(results) {
             accountManager.addAccount(toAccount)
         } else{
             toAccount = accountManager.findAccountByName(toName);
-
         }
-        let money = parseFloat(transaction["Amount"])
-        fromAccount.addMoney(money * -1)
 
+        let money = parseFloat(transaction.amount)
+        fromAccount.addMoney(money * -1 * 100)
 
-        toAccount.addMoney(money)
-
+        toAccount.addMoney(money * 100)
     })
 
     return accountManager;
 
 }
-function processTransactions(results) {
+
+let results = [];
+function processTransactionsCSV(results) {
     let transactionManager = new TransactionManager();
     results.forEach(line =>{
-        let transaction = new Transaction(line["Date"], line["From"], line["To"], line["Narrative"], parseFloat(line["Amount"]))
+        let transaction = new Transaction(line["Date"], line["From"], line["To"], line["Narrative"], (line["Amount"]))
         transactionManager.addTransaction(transaction)
     })
     return transactionManager;
 
 }
-
 
 function getUserInput() {
     let userInput = "";
@@ -135,11 +153,43 @@ function getUserInput() {
 function logAllAccounts(accountManager) {
     accountManager.accounts.forEach(account => {
             console.log("Account name: " + account.holder + "\n"
-                + "Account balance: " + account.amount + "\n"
+                + "Account balance: " + account.amount / 100 + "\n"
                 + "---------------------------------------------")
         }
     )
 }
+
+function handleUserInteraction(accountManager, transactionManager) {
+    let goodUserInput = true;
+    do {
+        let userInput = getUserInput();
+        if (userInput === "List All") {
+            logAllAccounts(accountManager);
+        } else if (userInput.substring(0, 4) === "List") {
+            if (!userInput.includes("[")) {
+                goodUserInput = false;
+            } else {
+                let userInputName = userInput.split("[")[1];
+                let actualName = userInputName.substring(0, userInputName.length - 1);
+                if (accountManager.existsAccount(actualName)) {
+                    logAllTransactions(actualName, transactionManager);
+                } else {
+                    console.log("No account under that name found")
+                    goodUserInput = false;
+                }
+            }
+        } else goodUserInput = false;
+    } while (goodUserInput === false)
+}
+
+function handleCSVInput(results) {
+    let transactionManager = processTransactionsCSV(results)
+    let accountManager = processAccounts(transactionManager)
+
+    handleUserInteraction(accountManager, transactionManager);
+}
+
+
 
 function logAllTransactions(name, transactionManager) {
     let results = [];
@@ -154,7 +204,7 @@ function logAllTransactions(name, transactionManager) {
     else {
         results.forEach(transaction => {
             console.log(
-                "Transaction date: " + transaction.date + "\n" +
+                "Transaction date: " + (transaction.date.format('DD/MM/YYYY')) + "\n" +
                 "From: " + transaction.from + "\n" +
                 "To: " + transaction.to + "\n" +
                 "Narrative: " + transaction.narrative + "\n" +
@@ -164,31 +214,58 @@ function logAllTransactions(name, transactionManager) {
     }
 }
 
-fs.createReadStream('Transactions2014.csv')
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', () => {
-        let accountManager = processAccounts(results)
-        let transactionManager = processTransactions(results)
 
-        let goodUserInput = true;
-        do {
-            let userInput = getUserInput();
-            if (userInput === "List All") {
-                logAllAccounts(accountManager);
-            } else if (userInput.substring(0, 4) === "List") {
-                let userInputName = userInput.split("[")[1];
-                let actualName = userInputName.substring(0, userInputName.length - 1);
-                if(accountManager.existsAccount(actualName))                {
-                    logAllTransactions(actualName, transactionManager);
-                }
-                else{
-                    console.log("No account under that name found")
-                    goodUserInput = false;
-                }
-            } else goodUserInput = false;
-        } while (goodUserInput === false)
-    });
+function readCSV(path) {
+    fs.createReadStream(path)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', () => {
+            handleCSVInput(results);
+        });
+}
+
+function processTransactionsJSON(results) {
+    let transactionManager = new TransactionManager();
+    results.forEach(line =>{
+        let transaction = new Transaction(line["Date"], line["FromAccount"], line["ToAccount"], line["Narrative"], (line["Amount"]))
+        transactionManager.addTransaction(transaction)
+    })
+    return transactionManager;
+}
+
+function handleJSONInput(jsonFile) {
+    let transactionManager = processTransactionsJSON(jsonFile);
+
+    let accountManager = processAccounts(transactionManager)
+
+    handleUserInteraction(accountManager, transactionManager);
+
+
+}
+
+function readJSON(path) {
+    const jsonFile = require("./" + path);
+    handleJSONInput(jsonFile)
+}
+
+function main() {
+    logger.log("starting program")
+    let path = 'Transactions2013.json'
+    let type = path.split('.')[1];
+    switch (type) {
+        case "csv":
+            readCSV(path)
+            break;
+        case "json":
+            readJSON(path)
+            break;
+        default:
+            console.log("Filetype not supported")
+    }
+}
+
+main();
+
 
 
 

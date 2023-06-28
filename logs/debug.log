@@ -1,0 +1,38 @@
+[2023-06-28T11:42:15.480] [DEBUG] logs - Some debug
+[2023-06-28T11:42:15.482] [INFO] logs - some log
+[2023-06-28T11:44:35.005] [DEBUG] logs - Some debug
+[2023-06-28T11:44:35.008] [INFO] logs - some log
+[2023-06-28T11:44:58.932] [DEBUG] logs - Some debug
+[2023-06-28T11:44:58.934] [INFO] logs - some log
+[2023-06-28T11:46:34.655] [DEBUG] logs - Some debug
+[2023-06-28T11:46:34.658] [INFO] logs - some log
+[2023-06-28T11:46:34.676] [ERROR] logs - Invalid date: Last Thursday
+[2023-06-28T11:48:38.571] [DEBUG] logs - Some debug
+[2023-06-28T11:48:38.572] [INFO] logs - some log
+[2023-06-28T11:48:38.578] [ERROR] logs - Invalid amount: NaN
+[2023-06-28T11:48:38.578] [ERROR] logs - Invalid date: Last Thursday
+[2023-06-28T11:49:07.720] [DEBUG] logs - Some debug
+[2023-06-28T11:49:07.730] [INFO] logs - some log
+[2023-06-28T11:50:09.078] [DEBUG] logs - Some debug
+[2023-06-28T11:50:09.079] [INFO] logs - some log
+[2023-06-28T11:50:09.085] [ERROR] logs - Invalid amount: One Cheeseburger
+[2023-06-28T11:50:09.085] [ERROR] logs - Invalid date: Last Thursday[2023-06-28T12:07:09.262] [INFO] logs - starting program
+[2023-06-28T12:07:09.268] [ERROR] logs - Invalid amount: One Cheeseburger
+[2023-06-28T12:07:09.269] [ERROR] logs - Invalid date: Last Thursday
+[2023-06-28T12:13:39.096] [INFO] logs - starting program
+[2023-06-28T12:14:49.733] [INFO] logs - starting program
+[2023-06-28T12:15:05.766] [INFO] logs - starting program
+[2023-06-28T12:15:53.611] [INFO] logs - starting program
+[2023-06-28T12:16:16.437] [INFO] logs - starting program
+[2023-06-28T12:16:32.268] [INFO] logs - starting program
+[2023-06-28T12:16:44.689] [INFO] logs - starting program
+[2023-06-28T12:17:16.155] [INFO] logs - starting program
+[2023-06-28T12:18:15.703] [INFO] logs - starting program
+[2023-06-28T12:19:48.923] [INFO] logs - starting program
+[2023-06-28T12:24:02.482] [INFO] logs - starting program
+[2023-06-28T12:27:29.633] [INFO] logs - starting program
+[2023-06-28T12:27:42.288] [INFO] logs - starting program
+[2023-06-28T12:28:10.612] [INFO] logs - starting program
+[2023-06-28T12:28:54.265] [INFO] logs - starting program
+[2023-06-28T12:29:00.707] [INFO] logs - starting program
+[2023-06-28T12:29:23.418] [INFO] logs - starting program

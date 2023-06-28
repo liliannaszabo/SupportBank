@@ -35,8 +35,8 @@ class Transaction{
     to;
     narrative;
 
-    constructor(date, from, to, narrative, amount) {
-        this.date = moment(date, "DD-MM-YYYY");
+    constructor(date, from, to, narrative, amount, dateFormat) {
+        this.date = moment(date,dateFormat );
         if(!this.date.isValid()){
             logger.error("Invalid date: " + date);
         }
@@ -137,7 +137,7 @@ let results = [];
 function processTransactionsCSV(results) {
     let transactionManager = new TransactionManager();
     results.forEach(line =>{
-        let transaction = new Transaction(line["Date"], line["From"], line["To"], line["Narrative"], (line["Amount"]))
+        let transaction = new Transaction(line["Date"], line["From"], line["To"], line["Narrative"], (line["Amount"]), "DD-MM-YYYY")
         transactionManager.addTransaction(transaction)
     })
     return transactionManager;
@@ -162,10 +162,10 @@ function logAllAccounts(accountManager) {
 function handleUserInteraction(accountManager, transactionManager) {
     let goodUserInput = true;
     do {
-        let userInput = getUserInput();
-        if (userInput === "List All") {
+        let userInput = getUserInput().toLowerCase();
+        if (userInput === "list all") {
             logAllAccounts(accountManager);
-        } else if (userInput.substring(0, 4) === "List") {
+        } else if (userInput.substring(0, 4) === "list") {
             if (!userInput.includes("[")) {
                 goodUserInput = false;
             } else {
@@ -204,7 +204,7 @@ function logAllTransactions(name, transactionManager) {
     else {
         results.forEach(transaction => {
             console.log(
-                "Transaction date: " + (transaction.date.format('DD/MM/YYYY')) + "\n" +
+                "Transaction date: " + (transaction.date()) + "\n" +
                 "From: " + transaction.from + "\n" +
                 "To: " + transaction.to + "\n" +
                 "Narrative: " + transaction.narrative + "\n" +
@@ -227,7 +227,7 @@ function readCSV(path) {
 function processTransactionsJSON(results) {
     let transactionManager = new TransactionManager();
     results.forEach(line =>{
-        let transaction = new Transaction(line["Date"], line["FromAccount"], line["ToAccount"], line["Narrative"], (line["Amount"]))
+        let transaction = new Transaction(line["Date"], line["FromAccount"], line["ToAccount"], line["Narrative"], (line["Amount"]), "YYYY-MM-DDTHH:mm:ss")
         transactionManager.addTransaction(transaction)
     })
     return transactionManager;

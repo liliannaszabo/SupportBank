@@ -171,15 +171,23 @@ fs.createReadStream('Transactions2014.csv')
         let accountManager = processAccounts(results)
         let transactionManager = processTransactions(results)
 
-        let userInput = getUserInput();
-        if(userInput === "List All"){
-            logAllAccounts(accountManager);
-        }
-        else if(userInput.substring(0,4) === "List"){
-            let userInputName = userInput.split("[")[1];
-            logAllTransactions(userInputName.substring(0, userInputName.length - 1), transactionManager);
-        }
-
+        let goodUserInput = true;
+        do {
+            let userInput = getUserInput();
+            if (userInput === "List All") {
+                logAllAccounts(accountManager);
+            } else if (userInput.substring(0, 4) === "List") {
+                let userInputName = userInput.split("[")[1];
+                let actualName = userInputName.substring(0, userInputName.length - 1);
+                if(accountManager.existsAccount(actualName))                {
+                    logAllTransactions(actualName, transactionManager);
+                }
+                else{
+                    console.log("No account under that name found")
+                    goodUserInput = false;
+                }
+            } else goodUserInput = false;
+        } while (goodUserInput === false)
     });
 
 
